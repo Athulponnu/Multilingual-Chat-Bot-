@@ -1,28 +1,57 @@
 import { useState } from "react";
-import { register } from "../api";
+import { useNavigate } from "react-router-dom";
 import { state } from "../state";
 
-export default function Login({ onNext }: any) {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  async function submit() {
-    await register(email, password);
-    state.email = email;
-    state.userId = email; // temporary ID
-    onNext();
+  async function login() {
+    setError("");
+
+    const res = await fetch("http://127.0.0.1:8000/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!res.ok) {
+      setError("Invalid credentials");
+      return;
+    }
+
+    const data = await res.json();
+
+    // ✅ persist auth correctly
+    state.token = data.access_token;
+    state.userId = email;
+
+    // ✅ redirect
+    navigate("/home");
   }
 
   return (
     <div>
-      <h2>Login / Register</h2>
-      <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
+      <h2>Login</h2>
+
       <input
-        placeholder="Password"
-        type="password"
-        onChange={e => setPassword(e.target.value)}
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
       />
-      <button onClick={submit}>Continue</button>
+
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <button onClick={login}>Login</button>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }

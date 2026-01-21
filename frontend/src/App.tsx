@@ -1,19 +1,68 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Rooms from "./pages/Rooms";
 import Chat from "./pages/Chat";
+import Home from "./pages/Home";
 import { state } from "./state";
+import React from "react";
+
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  if (!state.isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
 
 export default function App() {
-  // 1️⃣ Not logged in
-  if (!state.token) {
-    return <Login />;
-  }
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-  // 2️⃣ Logged in but no room
-  if (!state.roomId) {
-    return <Rooms />;
-  }
+        {/* Home after login */}
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
 
-  // 3️⃣ Logged in + in room
-  return <Chat />;
+        {/* Join rooms */}
+        <Route
+          path="/rooms"
+          element={
+            <ProtectedRoute>
+              <Rooms />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Chat */}
+        <Route
+          path="/chat/:roomId"
+          element={
+            <ProtectedRoute>
+              <Chat />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Default redirect */}
+        <Route
+          path="*"
+          element={
+            state.isAuthenticated()
+              ? <Navigate to="/home" replace />
+              : <Navigate to="/login" replace />
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+  );
 }
