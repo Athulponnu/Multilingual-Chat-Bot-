@@ -1,0 +1,64 @@
+# ======================
+# Python
+# ======================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.env
+.env.*
+venv/
+vnv/
+.venv/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+
+# ======================
+# FastAPI / Uvicorn
+# ======================
+*.log
+logs/
+instance/
+
+# ======================
+# Node / Vite / React
+# ======================
+node_modules/
+dist/
+build/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ======================
+# Frontend env files
+# ======================
+frontend/.env
+frontend/.env.*
+
+# ======================
+# Database
+# ======================
+*.sqlite
+*.sqlite3
+*.db
+
+# ======================
+# OS / Editor
+# ======================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ======================
+# Git
+# ======================
+.gitignore.bak
