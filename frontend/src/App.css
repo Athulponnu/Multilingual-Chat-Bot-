@@ -1,0 +1,6 @@
+body {
+  font-family: Arial, sans-serif;
+}
+input, button, select {
+  margin: 4px;
+}
