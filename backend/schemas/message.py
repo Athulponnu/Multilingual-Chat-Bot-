@@ -3,11 +3,15 @@ from pydantic import BaseModel
 
 
 class MessageOut(BaseModel):
+    id: str
     sender_id: str
-    sender_name: str | None = None
-    original_text: str
-    original_language: str | None = None
+    sender_name: str
+    content: str
+    language: str | None = None
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+

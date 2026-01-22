@@ -14,17 +14,18 @@ export default function Chat() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
+  const [targetLanguage, setTargetLanguage] = useState("en");
 
   const wsRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   /**
-   * 1️⃣ Load message history when room opens
+   * 1️⃣ Load message history (on room or language change)
    */
   useEffect(() => {
     if (!roomId) return;
 
-    fetch(`http://127.0.0.1:8000/messages/${roomId}`, {
+    fetch(`http://127.0.0.1:8000/messages/${roomId}?lang=${targetLanguage}`, {
       headers: {
         Authorization: `Bearer ${state.token}`,
       },
@@ -35,22 +36,22 @@ export default function Chat() {
 
         setMessages(
           data.map((m: any) => ({
-            senderId: m.sender_id,
-            senderName: m.sender_name ?? m.sender_id,
-            content: m.original_text,
+            senderId: m.sender,
+            senderName: m.sender_name ?? m.sender,
+            content: m.content,
           }))
         );
       })
       .catch(console.error);
-  }, [roomId]);
+  }, [roomId, targetLanguage]);
 
   /**
-   * 2️⃣ Connect WebSocket AFTER history loads
+   * 2️⃣ WebSocket connection
    */
   useEffect(() => {
     if (!roomId || !state.userId) return;
 
-    wsRef.current = connectWS(roomId, (data: any) => {
+    wsRef.current = connectWS(roomId, targetLanguage, (data: any) => {
       if (data.type !== "message") return;
 
       setMessages((prev) => [
@@ -88,7 +89,25 @@ export default function Chat() {
   return (
     <div style={styles.container}>
       {/* HEADER */}
-      <div style={styles.header}>Room: {roomId}</div>
+      <div style={{ ...styles.header, display: "flex", alignItems: "center" }}>
+        <span>Room: {roomId}</span>
+
+        <select
+          value={targetLanguage}
+          onChange={(e) => setTargetLanguage(e.target.value)}
+          style={{
+            marginLeft: "auto",
+            padding: "6px",
+            borderRadius: "4px",
+          }}
+        >
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="ml">Malayalam</option>
+          <option value="ta">Tamil</option>
+          <option value="te">Telugu</option>
+        </select>
+      </div>
 
       {/* MESSAGES */}
       <div style={styles.messages}>
