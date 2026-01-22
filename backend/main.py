@@ -17,10 +17,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers ONCE
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
-app.include_router(rooms.router, prefix="/rooms", tags=["Rooms"])
-app.include_router(messages.router, prefix="/messages", tags=["Messages"])
+app.include_router(rooms.router)      # rooms already has prefix
+app.include_router(messages.router)   # messages already has prefix
 
 
 @app.websocket("/ws/{room_id}/{user_id}/{lang}")

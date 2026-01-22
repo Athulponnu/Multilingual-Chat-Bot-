@@ -1,39 +1,83 @@
 import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import { state } from "../state";
 import { connectWS } from "../ws";
 
+type Message = {
+  sender: string;
+  content: string;
+};
+
 export default function Chat() {
-  const [messages, setMessages] = useState<string[]>([]);
+  const { roomId } = useParams<{ roomId: string }>();
+
+  const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
 
   const wsRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  // Connect WebSocket on mount
+  /**
+   * 1️⃣ Load message history when room opens
+   */
   useEffect(() => {
+    if (!roomId) return;
+
+    fetch(`http://127.0.0.1:8000/messages/${roomId}`, {
+      headers: {
+        Authorization: `Bearer ${state.token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setMessages(data); // data = [{sender, content}]
+      })
+      .catch(console.error);
+  }, [roomId]);
+
+  /**
+   * 2️⃣ Connect WebSocket AFTER history loads
+   */
+  useEffect(() => {
+    if (!roomId || !state.userId) return;
+
     wsRef.current = connectWS(
-      state.roomId,
+      roomId,
       state.userId,
-      state.receiveLanguage,
-      (msg) => {
-        setMessages((prev) => [...prev, msg]);
+      "en",
+      (raw: string) => {
+        // expected format: "sender: message"
+        const idx = raw.indexOf(":");
+        if (idx === -1) return;
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: raw.slice(0, idx),
+            content: raw.slice(idx + 1).trim(),
+          },
+        ]);
       }
     );
 
     return () => {
       wsRef.current?.close();
+      wsRef.current = null;
     };
-  }, []);
+  }, [roomId]);
 
-  // Auto-scroll on new message
+  /**
+   * 3️⃣ Auto-scroll
+   */
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Send message (NO optimistic append)
+  /**
+   * 4️⃣ Send message
+   */
   function send() {
     if (!text.trim()) return;
-
     wsRef.current?.send(text);
     setText("");
   }
@@ -42,23 +86,23 @@ export default function Chat() {
     <div style={styles.container}>
       {/* HEADER */}
       <div style={styles.header}>
-        Room: {state.roomId.slice(0, 8)} | Language: {state.receiveLanguage}
+        Room: {roomId}
       </div>
 
       {/* MESSAGES */}
       <div style={styles.messages}>
         {messages.map((m, i) => {
-          const isMe = m.startsWith(state.userId);
+          const isMe = m.sender === state.userId;
           return (
             <div
               key={i}
               style={{
                 ...styles.message,
                 alignSelf: isMe ? "flex-end" : "flex-start",
-                background: isMe ? "#DCF8C6" : "#FFFFFF"
+                background: isMe ? "#DCF8C6" : "#FFFFFF",
               }}
             >
-              {m}
+              <strong>{m.sender}</strong>: {m.content}
             </div>
           );
         })}
@@ -82,18 +126,18 @@ export default function Chat() {
   );
 }
 
-const styles: any = {
+const styles: Record<string, any> = {
   container: {
     display: "flex",
     flexDirection: "column",
     height: "100vh",
-    background: "#f4f6f8"
+    background: "#f4f6f8",
   },
   header: {
     padding: "12px",
     background: "#1f2937",
     color: "white",
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   messages: {
     flex: 1,
@@ -101,27 +145,27 @@ const styles: any = {
     display: "flex",
     flexDirection: "column",
     gap: "8px",
-    overflowY: "auto"
+    overflowY: "auto",
   },
   message: {
     maxWidth: "70%",
     padding: "10px",
     borderRadius: "8px",
     fontSize: "14px",
-    wordBreak: "break-word"
+    wordBreak: "break-word",
   },
   inputBar: {
     display: "flex",
     padding: "10px",
     borderTop: "1px solid #ddd",
-    background: "#fff"
+    background: "#fff",
   },
   input: {
     flex: 1,
     padding: "10px",
     fontSize: "14px",
     borderRadius: "4px",
-    border: "1px solid #ccc"
+    border: "1px solid #ccc",
   },
   sendBtn: {
     marginLeft: "8px",
@@ -129,6 +173,6 @@ const styles: any = {
     background: "#2563eb",
     color: "white",
     border: "none",
-    borderRadius: "4px"
-  }
+    borderRadius: "4px",
+  },
 };

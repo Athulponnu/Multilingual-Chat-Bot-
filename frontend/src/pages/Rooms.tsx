@@ -1,134 +1,98 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { state } from "../state";
-import { connectWS } from "../ws";
 
-export default function Chat() {
-  const [messages, setMessages] = useState<string[]>([]);
-  const [text, setText] = useState("");
+type Room = {
+  id: string;   // 🔧 FIX: room id is UUID string, not number
+  name: string;
+};
 
-  const wsRef = useRef<WebSocket | null>(null);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+export default function Rooms() {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [roomName, setRoomName] = useState("");
+  const [manualRoomId, setManualRoomId] = useState(""); // ✅ NEW
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
 
-  // Connect WebSocket on mount
+  const isCreate = params.get("create") === "true";
+
   useEffect(() => {
-    wsRef.current = connectWS(
-      state.roomId,
-      state.userId,
-      state.receiveLanguage,
-      (msg) => {
-        setMessages((prev) => [...prev, msg]);
-      }
-    );
-
-    return () => {
-      wsRef.current?.close();
-    };
+    fetchRooms();
   }, []);
 
-  // Auto-scroll on new message
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  async function fetchRooms() {
+    const res = await fetch("http://127.0.0.1:8000/rooms", {
+      headers: {
+        Authorization: `Bearer ${state.token}`,
+      },
+    });
 
-  // Send message (NO optimistic append)
-  function send() {
-    if (!text.trim()) return;
+    const data = await res.json();
+    setRooms(data);
+  }
 
-    wsRef.current?.send(text);
-    setText("");
+  async function createRoom() {
+    if (!roomName.trim()) return;
+
+    const res = await fetch("http://127.0.0.1:8000/rooms", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${state.token}`,
+      },
+      body: JSON.stringify({ name: roomName }),
+    });
+
+    const room = await res.json();
+    navigate(`/chat/${room.id}`);
+  }
+
+  // ✅ NEW: manual join (for testing / second user)
+  function joinByRoomId() {
+    if (!manualRoomId.trim()) return;
+    navigate(`/chat/${manualRoomId.trim()}`);
   }
 
   return (
-    <div style={styles.container}>
-      {/* HEADER */}
-      <div style={styles.header}>
-        Room: {state.roomId.slice(0, 8)} | Language: {state.receiveLanguage}
-      </div>
+    <div style={{ padding: 40 }}>
+      <h2>Rooms</h2>
 
-      {/* MESSAGES */}
-      <div style={styles.messages}>
-        {messages.map((m, i) => {
-          const isMe = m.startsWith(state.userId);
-          return (
-            <div
-              key={i}
-              style={{
-                ...styles.message,
-                alignSelf: isMe ? "flex-end" : "flex-start",
-                background: isMe ? "#DCF8C6" : "#FFFFFF"
-              }}
-            >
-              {m}
-            </div>
-          );
-        })}
-        <div ref={bottomRef} />
-      </div>
+      {isCreate && (
+        <>
+          <h3>Create Room</h3>
+          <input
+            placeholder="Room name"
+            value={roomName}
+            onChange={(e) => setRoomName(e.target.value)}
+          />
+          <button onClick={createRoom}>Create</button>
+          <hr />
+        </>
+      )}
 
-      {/* INPUT */}
-      <div style={styles.inputBar}>
-        <input
-          style={styles.input}
-          placeholder="Type a message..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send()}
-        />
-        <button style={styles.sendBtn} onClick={send}>
-          Send
-        </button>
-      </div>
+      {/* ✅ NEW SECTION (does not affect existing UI) */}
+      <h3>Join by Room ID</h3>
+      <input
+        placeholder="Paste Room ID"
+        value={manualRoomId}
+        onChange={(e) => setManualRoomId(e.target.value)}
+      />
+      <button onClick={joinByRoomId}>Join</button>
+
+      <hr />
+
+      <h3>Available Rooms</h3>
+
+      {rooms.length === 0 && <p>No rooms available</p>}
+
+      {rooms.map((room) => (
+        <div key={room.id}>
+          {room.name}
+          <button onClick={() => navigate(`/chat/${room.id}`)}>
+            Join
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
-
-const styles: any = {
-  container: {
-    display: "flex",
-    flexDirection: "column",
-    height: "100vh",
-    background: "#f4f6f8"
-  },
-  header: {
-    padding: "12px",
-    background: "#1f2937",
-    color: "white",
-    fontWeight: "bold"
-  },
-  messages: {
-    flex: 1,
-    padding: "12px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    overflowY: "auto"
-  },
-  message: {
-    maxWidth: "70%",
-    padding: "10px",
-    borderRadius: "8px",
-    fontSize: "14px",
-    wordBreak: "break-word"
-  },
-  inputBar: {
-    display: "flex",
-    padding: "10px",
-    borderTop: "1px solid #ddd",
-    background: "#fff"
-  },
-  input: {
-    flex: 1,
-    padding: "10px",
-    fontSize: "14px",
-    borderRadius: "4px",
-    border: "1px solid #ccc"
-  },
-  sendBtn: {
-    marginLeft: "8px",
-    padding: "10px 16px",
-    background: "#2563eb",
-    color: "white",
-    border: "none",
-    borderRadius: "4px"
-  }
-};

@@ -9,7 +9,7 @@ export default function Home() {
       <p>What would you like to do?</p>
 
       <div style={{ marginTop: "20px" }}>
-        <button onClick={() => navigate("/rooms/create")}>
+        <button onClick={() => navigate("/rooms?create=true")}>
           ➕ Create Room
         </button>
       </div>
