@@ -25,12 +25,12 @@ def get_room_messages(room_id: str, db: Session = Depends(get_db)):
     )
 
     return [
-        MessageOut(
-            id=m.id,
-            sender=m.sender_id,
-            content=m.original_text,
-            language=m.original_language,
-            created_at=m.created_at,
-        )
+        {
+            "sender_id": m.sender_id,
+            "sender_name": m.sender_id,  # TEMP: email / uuid
+            "original_text": m.original_text,
+            "original_language": m.original_language,
+            "created_at": m.created_at,
+        }
         for m in messages
     ]
