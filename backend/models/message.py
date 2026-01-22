@@ -12,3 +12,4 @@ class Message(Base):
     original_text = Column(Text)
     original_language = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    

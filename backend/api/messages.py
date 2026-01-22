@@ -17,9 +17,20 @@ def get_db():
 
 @router.get("/{room_id}", response_model=list[MessageOut])
 def get_room_messages(room_id: str, db: Session = Depends(get_db)):
-    return (
+    messages = (
         db.query(Message)
         .filter(Message.room_id == room_id)
         .order_by(Message.created_at)
         .all()
     )
+
+    return [
+        MessageOut(
+            id=m.id,
+            sender=m.sender_id,
+            content=m.original_text,
+            language=m.original_language,
+            created_at=m.created_at,
+        )
+        for m in messages
+    ]

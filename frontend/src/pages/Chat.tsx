@@ -4,7 +4,8 @@ import { state } from "../state";
 import { connectWS } from "../ws";
 
 type Message = {
-  sender: string;
+  senderId: string;
+  senderName: string;
   content: string;
 };
 
@@ -30,7 +31,15 @@ export default function Chat() {
     })
       .then((res) => res.json())
       .then((data) => {
-        setMessages(data); // data = [{sender, content}]
+        if (!Array.isArray(data)) return;
+
+        setMessages(
+          data.map((m: any) => ({
+            senderId: m.sender_id,
+            senderName: m.sender_name ?? m.sender_id,
+            content: m.original_text,
+          }))
+        );
       })
       .catch(console.error);
   }, [roomId]);
@@ -41,24 +50,18 @@ export default function Chat() {
   useEffect(() => {
     if (!roomId || !state.userId) return;
 
-    wsRef.current = connectWS(
-      roomId,
-      state.userId,
-      "en",
-      (raw: string) => {
-        // expected format: "sender: message"
-        const idx = raw.indexOf(":");
-        if (idx === -1) return;
+    wsRef.current = connectWS(roomId, (data: any) => {
+      if (data.type !== "message") return;
 
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: raw.slice(0, idx),
-            content: raw.slice(idx + 1).trim(),
-          },
-        ]);
-      }
-    );
+      setMessages((prev) => [
+        ...prev,
+        {
+          senderId: data.sender_id,
+          senderName: data.sender_name ?? data.sender_id,
+          content: data.text,
+        },
+      ]);
+    });
 
     return () => {
       wsRef.current?.close();
@@ -85,14 +88,13 @@ export default function Chat() {
   return (
     <div style={styles.container}>
       {/* HEADER */}
-      <div style={styles.header}>
-        Room: {roomId}
-      </div>
+      <div style={styles.header}>Room: {roomId}</div>
 
       {/* MESSAGES */}
       <div style={styles.messages}>
         {messages.map((m, i) => {
-          const isMe = m.sender === state.userId;
+          const isMe = m.senderId === state.userId;
+
           return (
             <div
               key={i}
@@ -102,7 +104,7 @@ export default function Chat() {
                 background: isMe ? "#DCF8C6" : "#FFFFFF",
               }}
             >
-              <strong>{m.sender}</strong>: {m.content}
+              <strong>{m.senderName}</strong>: {m.content}
             </div>
           );
         })}
