@@ -4,7 +4,7 @@ from core.database import SessionLocal
 from models.message import Message
 from models.user import User
 from schemas.message import MessageOut
-from services.translation_service import translate_text_stub
+from services.translation_service import translate_if_needed
 
 router = APIRouter(prefix="/messages", tags=["Messages"])
 
@@ -33,7 +33,7 @@ def get_room_messages(
     response = []
 
     for m in messages:
-        translated_text = translate_text_stub(
+        translated_text = translate_if_needed(
             db=db,
             message_id=m.id,
             original_text=m.original_text,

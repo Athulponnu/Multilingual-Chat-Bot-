@@ -5,7 +5,7 @@ from core.database import SessionLocal
 from models.message import Message
 from models.message_translation import MessageTranslation
 from schemas.translation import TranslateRequest, TranslateResponse
-from services.translation_service import translate_text_stub
+from services.translation_service import translate_if_needed
 
 router = APIRouter(prefix="/translations", tags=["Translations"])
 
@@ -46,7 +46,7 @@ def translate_message(
         )
 
     # 3️⃣ Translate (stub for now)
-    translated_text = translate_text_stub(
+    translated_text = translate_if_needed(
         message.original_text,
         payload.target_language,
     )

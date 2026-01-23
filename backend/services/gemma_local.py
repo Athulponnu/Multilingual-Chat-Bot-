@@ -15,9 +15,8 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_PATH,
-    torch_dtype=torch.float32,   # ✅ IMPORTANT
-    device_map=None              # ✅ IMPORTANT
+    torch_dtype=torch.float16,   # 🔥 GPU optimized
+    device_map="auto"            # 🔥 auto place on GPU
 )
 
-model.to("cpu")                  # ✅ FORCE CPU
 model.eval()

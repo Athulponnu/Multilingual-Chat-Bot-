@@ -1,10 +1,9 @@
-# backend/services/translation_service.py
 from sqlalchemy.orm import Session
 from models.message_translation import MessageTranslation
-from services.gemma_translate import translate_with_gemma   # ✅ MISSING IMPORT
+from ai.translator import translate
 
 
-def translate_text_stub(
+def translate_if_needed(
     db: Session,
     message_id: str,
     original_text: str,
@@ -26,7 +25,7 @@ def translate_text_stub(
     if cached:
         return cached.translated_text
 
-    translated = translate_with_gemma(
+    translated = translate(
         text=original_text,
         source_lang=source_lang,
         target_lang=target_lang,
@@ -42,7 +41,3 @@ def translate_text_stub(
     db.commit()
 
     return translated
-
-
-# ✅ ALIAS — this fixes the ImportError without changing behavior
-translate_if_needed = translate_text_stub
