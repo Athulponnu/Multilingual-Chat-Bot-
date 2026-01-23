@@ -2,6 +2,15 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt,JWTError
 from typing import Optional
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
+
+from core.database import SessionLocal
+from models.user import User
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
 
 SECRET_KEY = "super-secret-key"
 ALGORITHM = "HS256"
@@ -30,3 +39,19 @@ def decode_token(token: str) -> dict | None:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         return None
+
+def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+    payload = decode_token(token)
+    if not payload or "sub" not in payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user_id = payload["sub"]
+
+    db: Session = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        return user
+    finally:
+        db.close()

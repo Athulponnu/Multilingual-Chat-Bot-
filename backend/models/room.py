@@ -8,3 +8,5 @@ class Room(Base):
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False)
+    creator_id = Column(String)
+

@@ -19,16 +19,12 @@ export default function Chat() {
   const wsRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  /**
-   * 1️⃣ Load message history (on room or language change)
-   */
+  /* 1️⃣ Load history */
   useEffect(() => {
     if (!roomId) return;
 
     fetch(`http://127.0.0.1:8000/messages/${roomId}?lang=${targetLanguage}`, {
-      headers: {
-        Authorization: `Bearer ${state.token}`,
-      },
+      headers: { Authorization: `Bearer ${state.token}` },
     })
       .then((res) => res.json())
       .then((data) => {
@@ -45,11 +41,12 @@ export default function Chat() {
       .catch(console.error);
   }, [roomId, targetLanguage]);
 
-  /**
-   * 2️⃣ WebSocket connection
-   */
+  /* 2️⃣ WebSocket (🔥 FIXED) */
   useEffect(() => {
     if (!roomId || !state.userId) return;
+
+    // 🔥 close existing socket before reconnect
+    wsRef.current?.close();
 
     wsRef.current = connectWS(roomId, targetLanguage, (data: any) => {
       if (data.type !== "message") return;
@@ -68,18 +65,14 @@ export default function Chat() {
       wsRef.current?.close();
       wsRef.current = null;
     };
-  }, [roomId]);
+  }, [roomId, targetLanguage]); // 🔥 language-aware socket
 
-  /**
-   * 3️⃣ Auto-scroll
-   */
+  /* 3️⃣ Auto-scroll */
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  /**
-   * 4️⃣ Send message
-   */
+  /* 4️⃣ Send */
   function send() {
     if (!text.trim()) return;
     wsRef.current?.send(text);
@@ -87,19 +80,18 @@ export default function Chat() {
   }
 
   return (
-    <div style={styles.container}>
+    <div style={styles.page}>
       {/* HEADER */}
-      <div style={{ ...styles.header, display: "flex", alignItems: "center" }}>
-        <span>Room: {roomId}</span>
+      <div style={styles.header}>
+        <div>
+          <div style={styles.roomLabel}>Room</div>
+          <div style={styles.roomId}>{roomId}</div>
+        </div>
 
         <select
           value={targetLanguage}
           onChange={(e) => setTargetLanguage(e.target.value)}
-          style={{
-            marginLeft: "auto",
-            padding: "6px",
-            borderRadius: "4px",
-          }}
+          style={styles.languageSelect}
         >
           <option value="en">English</option>
           <option value="hi">Hindi</option>
@@ -120,10 +112,12 @@ export default function Chat() {
               style={{
                 ...styles.message,
                 alignSelf: isMe ? "flex-end" : "flex-start",
-                background: isMe ? "#DCF8C6" : "#FFFFFF",
+                background: isMe ? "#2563eb" : "#ffffff",
+                color: isMe ? "#ffffff" : "#111827",
               }}
             >
-              <strong>{m.senderName}</strong>: {m.content}
+              <div style={styles.sender}>{m.senderName}</div>
+              <div>{m.content}</div>
             </div>
           );
         })}
@@ -134,7 +128,7 @@ export default function Chat() {
       <div style={styles.inputBar}>
         <input
           style={styles.input}
-          placeholder="Type a message..."
+          placeholder="Type a message…"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
@@ -148,52 +142,78 @@ export default function Chat() {
 }
 
 const styles: Record<string, any> = {
-  container: {
+  page: {
     display: "flex",
     flexDirection: "column",
     height: "100vh",
     background: "#f4f6f8",
   },
   header: {
-    padding: "12px",
-    background: "#1f2937",
-    color: "white",
-    fontWeight: "bold",
+    padding: "14px 18px",
+    background: "#111827",
+    color: "#ffffff",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  roomLabel: {
+    fontSize: 12,
+    color: "#9ca3af",
+  },
+  roomId: {
+    fontSize: 14,
+    fontWeight: 600,
+  },
+  languageSelect: {
+    padding: "6px 8px",
+    borderRadius: 6,
+    border: "none",
+    fontSize: 13,
   },
   messages: {
     flex: 1,
-    padding: "12px",
+    padding: "16px",
     display: "flex",
     flexDirection: "column",
-    gap: "8px",
+    gap: "10px",
     overflowY: "auto",
   },
   message: {
-    maxWidth: "70%",
-    padding: "10px",
-    borderRadius: "8px",
-    fontSize: "14px",
+    maxWidth: "72%",
+    padding: "10px 12px",
+    borderRadius: 12,
+    fontSize: 14,
+    lineHeight: 1.4,
+    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
     wordBreak: "break-word",
+  },
+  sender: {
+    fontSize: 12,
+    fontWeight: 600,
+    marginBottom: 4,
+    opacity: 0.8,
   },
   inputBar: {
     display: "flex",
-    padding: "10px",
-    borderTop: "1px solid #ddd",
-    background: "#fff",
+    padding: "12px",
+    background: "#ffffff",
+    borderTop: "1px solid #e5e7eb",
   },
   input: {
     flex: 1,
-    padding: "10px",
-    fontSize: "14px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
+    padding: "10px 12px",
+    borderRadius: 20,
+    border: "1px solid #d1d5db",
+    fontSize: 14,
   },
   sendBtn: {
-    marginLeft: "8px",
-    padding: "10px 16px",
+    marginLeft: 10,
+    padding: "10px 18px",
     background: "#2563eb",
-    color: "white",
+    color: "#ffffff",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: 20,
+    fontSize: 14,
+    cursor: "pointer",
   },
 };
