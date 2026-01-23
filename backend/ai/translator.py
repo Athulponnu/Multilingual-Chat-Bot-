@@ -1,51 +1,54 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 
-MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
+MODEL_NAME = "facebook/nllb-200-distilled-600M"
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 print(f"🔍 Loading {MODEL_NAME} on {device}")
 
-tokenizer = AutoTokenizer.from_pretrained(
-    MODEL_NAME,
-    trust_remote_code=True
-)
-
-model = AutoModelForCausalLM.from_pretrained(
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForSeq2SeqLM.from_pretrained(
     MODEL_NAME,
     torch_dtype=torch.float16 if device == "cuda" else torch.float32,
-    device_map="auto" if device == "cuda" else None,
-    trust_remote_code=True
-)
-
-if device == "cpu":
-    model.to("cpu")
+).to(device)
 
 model.eval()
+
+# ✅ Frontend → NLLB language mapping
+LANG_MAP = {
+    "en": "eng_Latn",
+    "hi": "hin_Deva",
+    "ta": "tam_Taml",
+    "ml": "mal_Mlym",
+    "te": "tel_Telu",
+    "kn": "kan_Knda",
+}
 
 
 def translate(text: str, source_lang: str, target_lang: str) -> str:
     if source_lang == target_lang:
         return text
 
-    prompt = f"""
-You are a translation assistant.
-Translate the following text from {source_lang} to {target_lang}.
-Only output the translated text.
+    src = LANG_MAP.get(source_lang, "eng_Latn")
+    tgt = LANG_MAP.get(target_lang, "eng_Latn")
 
-Text:
-{text}
-"""
+    tokenizer.src_lang = src
 
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+    inputs = tokenizer(
+        text,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+        max_length=512,
+    ).to(device)
 
     with torch.no_grad():
         output = model.generate(
             **inputs,
+            forced_bos_token_id=tokenizer.convert_tokens_to_ids(tgt),
             max_new_tokens=128,
-            do_sample=False
         )
 
-    decoded = tokenizer.decode(output[0], skip_special_tokens=True)
-    return decoded.split("Text:")[-1].strip()
+    translated = tokenizer.decode(output[0], skip_special_tokens=True)
+    return translated.strip()
