@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { state } from "../state";
+import roomGif from "../assets/room.gif";
 
 type Room = {
   id: string;
@@ -15,6 +16,31 @@ export default function Rooms() {
   const navigate = useNavigate();
 
   const isCreate = params.get("create") === "true";
+
+  /* ⌨️ Typing animations */
+  const leftText = "Text at your comfort and make others happy...";
+  const rightText = "Create the room and share the happiness...";
+
+  const [typedLeft, setTypedLeft] = useState("");
+  const [typedRight, setTypedRight] = useState("");
+
+  useEffect(() => {
+    let i = 0;
+    let j = 0;
+
+    const interval = setInterval(() => {
+      setTypedLeft(leftText.slice(0, i + 1));
+      setTypedRight(rightText.slice(0, j + 1));
+
+      i++;
+      j++;
+
+      if (i > leftText.length) i = 0;
+      if (j > rightText.length) j = 0;
+    }, 120);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     fetchRooms();
@@ -54,11 +80,19 @@ export default function Rooms() {
 
   return (
     <div style={styles.page}>
+      {/* 🎞️ Background */}
+      <div style={styles.bgGif} />
+      <div style={styles.bgOverlay} />
+
+      {/* ⌨️ Typing text */}
+      <div style={styles.topLeftText}>{typedLeft}</div>
+      <div style={styles.bottomRightText}>{typedRight}</div>
+
+      {/* Card */}
       <div style={styles.card}>
         <h2>Rooms</h2>
 
-        {/* ================= CREATE MODE ================= */}
-        {isCreate && (
+        {isCreate ? (
           <>
             <h3>Create Room</h3>
 
@@ -79,22 +113,21 @@ export default function Rooms() {
 
             {rooms.length === 0 && <p>No rooms available</p>}
 
-            {rooms.map((room) => (
-              <div key={room.id} style={styles.roomRow}>
-                <span>{room.name}</span>
-                <button
-                  style={styles.joinBtn}
-                  onClick={() => navigate(`/chat/${room.id}`)}
-                >
-                  Join
-                </button>
-              </div>
-            ))}
+            <div style={styles.roomList}>
+              {rooms.map((room) => (
+                <div key={room.id} style={styles.roomRow}>
+                  <span>{room.name}</span>
+                  <button
+                    style={styles.joinBtn}
+                    onClick={() => navigate(`/chat/${room.id}`)}
+                  >
+                    Join
+                  </button>
+                </div>
+              ))}
+            </div>
           </>
-        )}
-
-        {/* ================= JOIN MODE ================= */}
-        {!isCreate && (
+        ) : (
           <>
             <h3>Join by Room ID</h3>
 
@@ -114,17 +147,19 @@ export default function Rooms() {
                 <hr style={styles.divider} />
                 <h3>Your Joined Rooms</h3>
 
-                {rooms.map((room) => (
-                  <div key={room.id} style={styles.roomRow}>
-                    <span>{room.name}</span>
-                    <button
-                      style={styles.joinBtn}
-                      onClick={() => navigate(`/chat/${room.id}`)}
-                    >
-                      Open
-                    </button>
-                  </div>
-                ))}
+                <div style={styles.roomList}>
+                  {rooms.map((room) => (
+                    <div key={room.id} style={styles.roomRow}>
+                      <span>{room.name}</span>
+                      <button
+                        style={styles.joinBtn}
+                        onClick={() => navigate(`/chat/${room.id}`)}
+                      >
+                        Open
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </>
             )}
           </>
@@ -134,58 +169,128 @@ export default function Rooms() {
   );
 }
 
+/* ===== Styles ===== */
 const styles: Record<string, any> = {
   page: {
-    minHeight: "100vh",
-    background: "#f4f6f8",
+    height: "100vh",
+    overflow: "hidden",
+    position: "relative",
     display: "flex",
     justifyContent: "center",
+    alignItems: "flex-start",
     paddingTop: 60,
   },
+
+  bgGif: {
+    position: "fixed",
+    inset: 0,
+    backgroundImage: `url(${roomGif})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    zIndex: -2,
+  },
+
+  bgOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(255,255,255,0.15)",
+    zIndex: -1,
+  },
+
+  /* ⌨️ Typing text */
+  topLeftText: {
+    position: "fixed",
+    top: 100,
+    left: 28,
+    fontSize: 28,
+    color: "#ffffff",
+    fontFamily: "monospace",
+    letterSpacing: 1.2,
+    zIndex: 1,
+
+    maxWidth: 450,            // ✅ controls line length
+    whiteSpace: "normal",     // ✅ allow wrapping
+    wordBreak: "break-word",  // ✅ safe word breaking
+  },
+
+  bottomRightText: {
+    position: "fixed",
+    bottom: 290,
+    right: 28,
+    fontSize: 28,
+    color: "#ffffff",
+    fontFamily: "monospace",
+    letterSpacing: 1.2,
+    zIndex: 1,
+    textAlign: "right",
+
+    maxWidth: 450,            // ✅ smaller width on right
+    whiteSpace: "normal",
+    wordBreak: "break-word",
+  },
+
+
   card: {
     width: 420,
-    background: "#fff",
+    height: 560,
+    background: "#ffffff",
     padding: 32,
-    borderRadius: 12,
-    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+    borderRadius: 16,
+    boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
   },
+
+  roomList: {
+    overflowY: "auto",
+    marginTop: 8,
+  },
+
   input: {
     width: "100%",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 10,
     border: "1px solid #d1d5db",
   },
+
   primaryBtn: {
     width: "100%",
-    padding: 12,
-    background: "#2563eb",
+    padding: 14,
+    background: "linear-gradient(135deg, #6366f1, #3b82f6)",
     color: "#fff",
     border: "none",
-    borderRadius: 8,
+    borderRadius: 10,
     cursor: "pointer",
+    marginBottom: 8,
   },
+
   secondaryBtn: {
     width: "100%",
-    padding: 12,
-    background: "#10b981",
+    padding: 14,
+    background: "linear-gradient(135deg, #34d399, #10b981)",
     color: "#fff",
     border: "none",
-    borderRadius: 8,
+    borderRadius: 10,
     cursor: "pointer",
+    marginBottom: 8,
   },
+
   divider: {
-    margin: "20px 0",
+    margin: "16px 0",
   },
+
   roomRow: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 10,
   },
+
   joinBtn: {
-    padding: "6px 12px",
-    borderRadius: 6,
+    padding: "6px 14px",
+    borderRadius: 8,
     border: "none",
     background: "#e5e7eb",
     cursor: "pointer",

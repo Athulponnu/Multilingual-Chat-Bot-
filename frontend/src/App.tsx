@@ -1,13 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Rooms from "./pages/Rooms";
-import Chat from "./pages/Chat";
-import Home from "./pages/Home";
-import { state } from "./state";
 import React from "react";
 
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Home from "./pages/Home";
+import Rooms from "./pages/Rooms";
+import Chat from "./pages/Chat";
+import { state } from "./state";
 
+/* ===== Protected Route ===== */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!state.isAuthenticated()) {
     return <Navigate to="/login" replace />;
@@ -19,11 +20,22 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public routes */}
+
+        {/* ===== ROOT REDIRECT ===== */}
+        <Route
+          path="/"
+          element={
+            state.isAuthenticated()
+              ? <Navigate to="/home" replace />
+              : <Navigate to="/login" replace />
+          }
+        />
+
+        {/* ===== PUBLIC ROUTES ===== */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Home after login */}
+        {/* ===== PROTECTED ROUTES ===== */}
         <Route
           path="/home"
           element={
@@ -33,7 +45,6 @@ export default function App() {
           }
         />
 
-        {/* Join rooms */}
         <Route
           path="/rooms"
           element={
@@ -43,7 +54,6 @@ export default function App() {
           }
         />
 
-        {/* Chat */}
         <Route
           path="/chat/:roomId"
           element={
@@ -53,7 +63,7 @@ export default function App() {
           }
         />
 
-        {/* Default redirect */}
+        {/* ===== CATCH-ALL ===== */}
         <Route
           path="*"
           element={
@@ -62,6 +72,7 @@ export default function App() {
               : <Navigate to="/login" replace />
           }
         />
+
       </Routes>
     </BrowserRouter>
   );

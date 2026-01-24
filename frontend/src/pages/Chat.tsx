@@ -19,7 +19,7 @@ export default function Chat() {
   const wsRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  /* 1️⃣ Load history */
+  /* 1️⃣ Load message history */
   useEffect(() => {
     if (!roomId) return;
 
@@ -41,11 +41,10 @@ export default function Chat() {
       .catch(console.error);
   }, [roomId, targetLanguage]);
 
-  /* 2️⃣ WebSocket (🔥 FIXED) */
+  /* 2️⃣ WebSocket connection */
   useEffect(() => {
     if (!roomId || !state.userId) return;
 
-    // 🔥 close existing socket before reconnect
     wsRef.current?.close();
 
     wsRef.current = connectWS(roomId, targetLanguage, (data: any) => {
@@ -65,14 +64,14 @@ export default function Chat() {
       wsRef.current?.close();
       wsRef.current = null;
     };
-  }, [roomId, targetLanguage]); // 🔥 language-aware socket
+  }, [roomId, targetLanguage]);
 
   /* 3️⃣ Auto-scroll */
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  /* 4️⃣ Send */
+  /* 4️⃣ Send message */
   function send() {
     if (!text.trim()) return;
     wsRef.current?.send(text);
@@ -81,7 +80,7 @@ export default function Chat() {
 
   return (
     <div style={styles.page}>
-      {/* HEADER */}
+      {/* ===== HEADER ===== */}
       <div style={styles.header}>
         <div>
           <div style={styles.roomLabel}>Room</div>
@@ -101,7 +100,7 @@ export default function Chat() {
         </select>
       </div>
 
-      {/* MESSAGES */}
+      {/* ===== MESSAGES ===== */}
       <div style={styles.messages}>
         {messages.map((m, i) => {
           const isMe = m.senderId === state.userId;
@@ -110,21 +109,37 @@ export default function Chat() {
             <div
               key={i}
               style={{
-                ...styles.message,
-                alignSelf: isMe ? "flex-end" : "flex-start",
-                background: isMe ? "#2563eb" : "#ffffff",
-                color: isMe ? "#ffffff" : "#111827",
+                display: "flex",
+                justifyContent: isMe ? "flex-end" : "flex-start",
               }}
             >
-              <div style={styles.sender}>{m.senderName}</div>
-              <div>{m.content}</div>
+              <div
+                style={{
+                  ...styles.message,
+                  background: isMe ? "#2563eb" : "#ffffff",
+                  color: isMe ? "#ffffff" : "#111827",
+                  borderTopRightRadius: isMe ? 4 : 14,
+                  borderTopLeftRadius: isMe ? 14 : 4,
+                  textAlign: isMe ? "right" : "left",
+                }}
+              >
+                <div
+                  style={{
+                    ...styles.sender,
+                    textAlign: isMe ? "right" : "left",
+                  }}
+                >
+                  {m.senderName}
+                </div>
+                <div>{m.content}</div>
+              </div>
             </div>
           );
         })}
         <div ref={bottomRef} />
       </div>
 
-      {/* INPUT */}
+      {/* ===== INPUT ===== */}
       <div style={styles.inputBar}>
         <input
           style={styles.input}
@@ -141,6 +156,7 @@ export default function Chat() {
   );
 }
 
+/* ===== Styles ===== */
 const styles: Record<string, any> = {
   page: {
     display: "flex",
@@ -148,6 +164,7 @@ const styles: Record<string, any> = {
     height: "100vh",
     background: "#f4f6f8",
   },
+
   header: {
     padding: "14px 18px",
     background: "#111827",
@@ -156,49 +173,57 @@ const styles: Record<string, any> = {
     justifyContent: "space-between",
     alignItems: "center",
   },
+
   roomLabel: {
     fontSize: 12,
     color: "#9ca3af",
   },
+
   roomId: {
     fontSize: 14,
     fontWeight: 600,
   },
+
   languageSelect: {
     padding: "6px 8px",
     borderRadius: 6,
     border: "none",
     fontSize: 13,
   },
+
   messages: {
     flex: 1,
-    padding: "16px",
+    padding: 16,
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
+    gap: 10,
     overflowY: "auto",
   },
+
   message: {
     maxWidth: "72%",
-    padding: "10px 12px",
-    borderRadius: 12,
+    padding: "10px 14px",
+    borderRadius: 14,
     fontSize: 14,
     lineHeight: 1.4,
-    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
     wordBreak: "break-word",
   },
+
   sender: {
     fontSize: 12,
     fontWeight: 600,
     marginBottom: 4,
     opacity: 0.8,
   },
+
   inputBar: {
     display: "flex",
-    padding: "12px",
+    padding: 12,
     background: "#ffffff",
     borderTop: "1px solid #e5e7eb",
   },
+
   input: {
     flex: 1,
     padding: "10px 12px",
@@ -206,6 +231,7 @@ const styles: Record<string, any> = {
     border: "1px solid #d1d5db",
     fontSize: 14,
   },
+
   sendBtn: {
     marginLeft: 10,
     padding: "10px 18px",
