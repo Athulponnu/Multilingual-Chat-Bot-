@@ -1,180 +1,59 @@
-# 🌐 Multilingual Chat Bot
+# Real-Time Multilingual Translation System
 
-A real-time multilingual chat application that allows users to create and join chat rooms, exchange messages instantly using WebSockets, and automatically translate messages across different languages.
+A production-oriented **real-time multilingual message translation system** designed for low-latency inference in chat applications.  
+The system enables users to communicate across languages seamlessly using **WebSockets** and **ML-powered translation inference**.
 
-Built with **FastAPI**, **WebSockets**, **React (Vite)**, and **PostgreSQL**.
-
----
-
-## 🚀 Features
-
-- 🔐 User authentication (Login / Register)
-- 🏠 Home page with room actions
-- ➕ Create chat rooms
-- ➡️ Join existing rooms
-- 💬 Real-time messaging via WebSockets
-- 🌍 Automatic language translation
-- 🔄 JWT-based authentication
-- 🧭 Protected routes
-- ⚡ FastAPI backend
-- 🎨 React + Vite frontend
+Built with **FastAPI**, **React (Vite)**, **PostgreSQL**, and a **local LLM-based translation pipeline**.
 
 ---
 
-## 🏗️ Tech Stack
+## Overview
 
-### Backend
-- FastAPI
-- WebSockets
-- PostgreSQL
-- SQLAlchemy
-- JWT Authentication
-- Uvicorn
+Real-time chat translation introduces unique challenges that go beyond standard web applications:
 
-### Frontend
-- React
-- TypeScript
-- Vite
-- React Router
+- Low-latency inference requirements
+- Concurrent message handling
+- Real-time message streaming
+- Fault-tolerant ML inference
+- Language preservation across users
+
+This project focuses on **ML inference integration in a real-time system**, rather than only UI features.
 
 ---
 
-## 📂 Project Structure
+## Problem Statement
+
+In multilingual chat systems, messages must be:
+- Translated instantly to avoid breaking conversation flow
+- Delivered reliably to multiple users
+- Preserved in their original form for auditing and reprocessing
+- Processed under concurrency without blocking the system
+
+This project addresses these challenges by combining:
+- WebSocket-based real-time communication
+- Database-backed message persistence
+- Isolated translation inference logic
+- Production-aware backend architecture
+
+---
+
+## System Architecture
+
+- **Frontend**: React (Vite) — real-time UI using WebSockets  
+- **Backend**: FastAPI — API, authentication, and message orchestration  
+- **Database**: PostgreSQL — persistent storage for users, rooms, messages, and translations  
+- **ML Inference**: Local LLM-based translation (Meta NLLB-200-600M implementation)  
+- **Communication**: REST APIs + WebSockets  
+
+---
+
+## ML Translation Pipeline
 
 ```text
-multilingual_chat/
-│
-├── backend/
-│   ├── api/
-│   │   ├── auth.py
-│   │   ├── rooms.py
-│   │   ├── messages.py
-│   │   └── users.py
-│   ├── core/
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── security.py
-│   │   └── websocket.py
-│   ├── models/
-│   ├── schemas/
-│   ├── services/
-│   └── main.py
-│
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Login.tsx
-│   │   │   ├── Register.tsx
-│   │   │   ├── Home.tsx
-│   │   │   ├── Rooms.tsx
-│   │   │   └── Chat.tsx
-│   │   ├── components/
-│   │   ├── state.ts
-│   │   ├── ws.ts
-│   │   └── App.tsx
-│   └── package.json
-│
-├── .gitignore
-└── README.md
-```
-
-## ⚙️ Setup Instructions
-1️⃣ Clone the Repository
-
-```
-git clone https://github.com/Athulponnu/Multilingual-Chat-Bot-.git
-cd Multilingual-Chat-Bot-
-```
-
-## 2️⃣ Backend Setup
-```
-cd backend
-python -m venv vnv
-source vnv/bin/activate    # Windows: vnv\Scripts\activate
-pip install -r requirements.txt
-```
-
-##Create a .env file:
-
-DATABASE_URL=postgresql://user:password@localhost:5432/chatdb
-SECRET_KEY=your_secret_key
-ALGORITHM=HS256
-
-
-Run backend server:
-
-uvicorn main:app --reload
-
-
-Backend URL:
-
-http://127.0.0.1:8000
-
-## 3️⃣ Frontend Setup
-cd frontend
-npm install
-npm run dev
-
-
-Frontend URL:
-
-http://localhost:5173
-
-## 🔐 Authentication Flow
-```
-User registers or logs in
-
-Backend issues a JWT token
-
-Token is stored in localStorage
-
-Protected routes are unlocked
-
-User is redirected to Home
-
-🏠 Application Flow
-Login / Register
-      ↓
-     Home
-  ↙        ↘
-Create     Join
- Room      Room
-      ↓
-     Chat
-```
-## 🔌 WebSocket Communication
-
-WebSocket is used for real-time messaging
-
-Authenticated using JWT token
-
-Messages are broadcast to all users in a room
-
-Translation service processes outgoing messages
-
-## 🛡️ Security
-
-JWT-based authentication
-
-Password hashing
-
-Protected API endpoints
-
-WebSocket authentication
-
-## 🧪 Future Enhancements
-
-🔔 Typing indicators
-
-🟢 Online user presence
-
-📎 File sharing
-
-🔄 Token refresh
-
-🌐 More language support
-
-👨‍💻 Author
-
-Athul KK
-GitHub: https://github.com/Athulponnu
+User Message
+ → Language Detection
+ → Text Normalization
+ → Translation Model Inference
+ → Post-processing
+ → Store Original + Translated Text
+ → Broadcast via WebSocket
