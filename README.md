@@ -57,3 +57,21 @@ User Message
  → Post-processing
  → Store Original + Translated Text
  → Broadcast via WebSocket
+```
+
+### Working sample images/gif
+
+
+
+The GIF below demonstrates:
+- Messages sent in different languages
+- Real-time translation during chat
+- Live WebSocket communication
+
+![Real-Time Chat Demo](./docs/demo_chat.gif)
+
+![Real-Time Chat Demo](./docs/Exp.png)
+
+![Real-Time Chat Demo](./docs/chat.png)
+
+![Real-Time Chat Demo](./docs/db.png)
