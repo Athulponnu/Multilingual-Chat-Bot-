@@ -1,4 +1,6 @@
 export const state = {
+  /* ================= AUTH ================= */
+
   get token() {
     return localStorage.getItem("token");
   },
@@ -25,5 +27,23 @@ export const state = {
 
   isAuthenticated() {
     return !!localStorage.getItem("token");
+  },
+
+  /* ================= LANGUAGE (ADD THIS) ================= */
+
+  get sendLanguage() {
+    return localStorage.getItem("sendLanguage") || "en";
+  },
+
+  set sendLanguage(value: string) {
+    localStorage.setItem("sendLanguage", value);
+  },
+
+  get receiveLanguage() {
+    return localStorage.getItem("receiveLanguage") || "en";
+  },
+
+  set receiveLanguage(value: string) {
+    localStorage.setItem("receiveLanguage", value);
   },
 };

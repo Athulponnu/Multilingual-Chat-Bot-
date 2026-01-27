@@ -47,7 +47,7 @@ export default function Rooms() {
   }, []);
 
   async function fetchRooms() {
-    const res = await fetch("http://127.0.0.1:8000/rooms", {
+    const res = await fetch("http://127.0.0.1:8001/rooms", {
       headers: {
         Authorization: `Bearer ${state.token}`,
       },
@@ -60,7 +60,7 @@ export default function Rooms() {
   async function createRoom() {
     if (!roomName.trim()) return;
 
-    const res = await fetch("http://127.0.0.1:8000/rooms", {
+    const res = await fetch("http://127.0.0.1:8001/rooms", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

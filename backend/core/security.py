@@ -1,38 +1,38 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from jose import jwt,JWTError
+from jose import jwt, JWTError
 from typing import Optional
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+import os
 
 from core.database import SessionLocal
 from models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-
 SECRET_KEY = "super-secret-key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
 
-
+# ✅ bcrypt-safe (72 BYTES)
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password[:72])
+    return pwd_context.hash(password.encode("utf-8")[:72])
 
-
-def verify_password(plain, hashed):
-    return pwd_context.verify(plain, hashed)
-
+def verify_password(plain: str, hashed: str) -> bool:
+    return pwd_context.verify(plain.encode("utf-8")[:72], hashed)
 
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
 
 def decode_token(token: str) -> dict | None:
     try:

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { state } from "../state";
+import { login as loginApi } from "../api";
 import bg from "../assets/df.png";
 import video from "../assets/test.mp4";
 
@@ -11,28 +12,24 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  async function login() {
-    setError("");
-    setLoading(true);
+  async function handleLogin() {
+    try {
+      setError("");
+      setLoading(true);
 
-    const res = await fetch("http://127.0.0.1:8000/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+      const data = await loginApi(email, password);
 
-    setLoading(false);
+      state.token = data.access_token;
+      state.userId = data.user_id;
 
-    if (!res.ok) {
+      localStorage.setItem("token", data.access_token);
+      
+      navigate("/home");
+    } catch (err) {
       setError("Invalid email or password");
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    const data = await res.json();
-    state.token = data.access_token;
-    state.userId = email;
-
-    navigate("/home");
   }
 
   /* ===== Floating background animation ===== */
@@ -50,7 +47,7 @@ export default function Login() {
 
       <div style={styles.page}>
         <div style={styles.card}>
-          {/* LEFT: Video with overlay text */}
+          {/* LEFT: Video */}
           <div style={styles.videoWrapper}>
             <video
               style={styles.video}
@@ -60,11 +57,7 @@ export default function Login() {
               loop
               playsInline
             />
-
-            {/* Dark overlay */}
             <div style={styles.videoOverlay} />
-
-            {/* Text overlay */}
             <div style={styles.videoText}>
               <h2 style={styles.videoTitle}>Welcome To Chatzy</h2>
               <p style={styles.videoSubtitle}>
@@ -99,7 +92,7 @@ export default function Login() {
                 opacity: loading ? 0.7 : 1,
                 cursor: loading ? "not-allowed" : "pointer",
               }}
-              onClick={login}
+              onClick={handleLogin}
               disabled={loading}
             >
               {loading ? "Signing in..." : "Login"}
@@ -143,7 +136,6 @@ const styles: Record<string, any> = {
     boxShadow: "0 20px 50px rgba(0,0,0,0.45)",
   },
 
-  /* ===== VIDEO SIDE ===== */
   videoWrapper: {
     position: "relative",
     width: "45%",
@@ -168,30 +160,20 @@ const styles: Record<string, any> = {
     left: 0,
     right: 0,
     padding: 24,
-
     display: "flex",
     flexDirection: "column",
-    alignItems: "flex-start",
-    textAlign: "left",
     color: "#ffffff",
   },
 
   videoTitle: {
     fontSize: 35,
     fontWeight: 600,
-    marginBottom: 2,
-    lineHeight: 1.1,
-    textShadow: "0 4px 12px rgba(0,0,0,0.2)",
   },
 
   videoSubtitle: {
     fontSize: 24,
-    opacity: 1,
-    lineHeight: 1.2,
-    textShadow: "0 2px 6px rgba(0,0,0,0.85)",
   },
 
-  /* ===== FORM SIDE ===== */
   form: {
     width: "55%",
     padding: 32,

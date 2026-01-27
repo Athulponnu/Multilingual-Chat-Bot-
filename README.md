@@ -75,3 +75,77 @@ The GIF below demonstrates:
 ![Real-Time Chat Demo](./docs/chat.png)
 
 ![Real-Time Chat Demo](./docs/db.png)
+
+## Run locally
+
+### ✅ Prerequisites
+
+- Python **3.10+**
+- Node.js **18+**
+- PostgreSQL **15**
+- Git
+
+---
+
+## 1️⃣ Clone the repository
+
+```bash
+git clone https://github.com/Athulponnu/real-time-multilingual-translation-inference-system.git
+cd real-time-multilingual-translation-inference-system
+
+```
+cd backend
+python -m venv venv
+source venv/bin/activate 
+pip install -r requirements.txt
+```
+
+```
+Set environment variables
+
+Create a .env file in backend/:
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/chatdb
+SECRET_KEY=super-secret-key
+```
+
+
+### Make sure PostgreSQL is running and create DB:
+```
+CREATE DATABASE chatdb;
+```
+
+### run backend
+
+```
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+```
+cd frontend
+npm install
+```
+
+```
+npm run dev
+```
+
+
+### 🐳 Docker Setup (Recommended)
+✅ Prerequisites
+
+Docker Desktop
+
+Docker Compose
+
+Git
+
+```
+git clone https://github.com/Athulponnu/real-time-multilingual-translation-inference-system.git
+cd real-time-multilingual-translation-inference-system
+
+```
+
+```
+docker compose up --build
+
+```

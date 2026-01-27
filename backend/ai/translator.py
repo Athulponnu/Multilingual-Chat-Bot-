@@ -7,7 +7,10 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 print(f"🔍 Loading {MODEL_NAME} on {device}")
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+tokenizer = AutoTokenizer.from_pretrained(
+    MODEL_NAME,
+    use_fast=False
+)
 model = AutoModelForSeq2SeqLM.from_pretrained(
     MODEL_NAME,
     torch_dtype=torch.float16 if device == "cuda" else torch.float32,

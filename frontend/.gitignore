@@ -33,3 +33,22 @@ node_modules/
 
 # Env
 .env
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Docker
+pgdata/
+*.log
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/

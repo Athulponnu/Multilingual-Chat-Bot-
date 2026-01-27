@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import registerGif from "../assets/Register.gif";
 
-const API = "http://localhost:8000";
+const API = "http://localhost:8001";
 
 export default function Register() {
   const [email, setEmail] = useState("");

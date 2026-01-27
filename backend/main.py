@@ -9,6 +9,7 @@ from core.security import decode_token
 from services.language_service import detect_language
 from services.translation_service import translate_if_needed
 
+
 from api import auth, users, rooms, messages
 
 Base.metadata.create_all(bind=engine)
@@ -17,7 +18,10 @@ app = FastAPI(title="Multilingual Chat")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
