@@ -94,6 +94,7 @@ git clone https://github.com/Athulponnu/real-time-multilingual-translation-infer
 cd real-time-multilingual-translation-inference-system
 
 ```
+```
 cd backend
 python -m venv venv
 source venv/bin/activate 
@@ -131,21 +132,13 @@ npm run dev
 
 
 ### 🐳 Docker Setup (Recommended)
-✅ Prerequisites
+-Prerequisites
+-Docker Desktop
+-Docker Compose
 
-Docker Desktop
-
-Docker Compose
-
-Git
+### Git
 
 ```
 git clone https://github.com/Athulponnu/real-time-multilingual-translation-inference-system.git
 cd real-time-multilingual-translation-inference-system
-
-```
-
-```
-docker compose up --build
-
 ```
