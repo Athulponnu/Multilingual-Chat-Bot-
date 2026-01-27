@@ -141,4 +141,16 @@ npm run dev
 ```
 git clone https://github.com/Athulponnu/real-time-multilingual-translation-inference-system.git
 cd real-time-multilingual-translation-inference-system
+
 ```
+
+
+▶ Start all services
+```
+docker compose up --build
+```
+🛑 Stop services
+```
+docker compose down
+```
+
